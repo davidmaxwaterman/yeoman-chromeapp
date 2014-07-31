@@ -216,7 +216,8 @@ module.exports = function (grunt) {
                     removeEmptyAttributes: true,
                     removeOptionalTags: true,
                     removeRedundantAttributes: true,
-                    useShortDoctype: true
+                    useShortDoctype: true,
+                    customAttrAssign: [/\?=/],
                 },
                 files: [{
                     expand: true,
@@ -266,6 +267,45 @@ module.exports = function (grunt) {
                     ]
                 }]
             },
+
+            vulcanized: {
+                options: {
+                    // move the csp js file into usemin block
+                    process: function (content, srcpath) {
+                      var useminComment = '<!-- build:js scripts/index.js -->';
+                      function moveToUsemin(script) {
+                        // extract the csp js script line
+                        var cspStart = content.indexOf(script);
+                        var cspEnd   = cspStart+script.length;
+                        var cspJs = content.slice(cspStart,cspEnd); // CR
+
+                        // cut it out
+                        content = content.substring(0,cspStart-1).concat(
+                            content.substring(cspEnd)
+                        );
+
+                        // insert it into the usemin block
+                        var useminEnd = content.indexOf(useminComment)+useminComment.length; // next line
+                        content = content
+                            .substring(0,useminEnd) // end of useminComment
+                            .concat(
+                                '\n',
+                                cspJs, // insert
+                                '\n',
+                                content.substring(useminEnd+1) // after end of useminComment
+                            );
+                      }
+
+                      moveToUsemin('<script src="index-csp.js"></script>');
+                      moveToUsemin('<script src="bower_components/polymer/polymer.js"></script>');
+                      moveToUsemin('<script src="bower_components/platform/platform.js"></script>');
+                      return content;
+                    }
+                },
+                src: 'build/index-csp.html',
+                dest: 'build/index.html',
+            },
+
             // Copies remaining files to places other tasks can use
             dist: {
                 files: [{
@@ -348,12 +388,7 @@ module.exports = function (grunt) {
         vulcanize: {
             default: {
                 options: {
-                    'csp': true,
-                    //excludes: {
-                      //imports: [
-                        //'polymer.html'
-                      //]
-                    //}
+                    'csp': true
                 },
                 files: {
                     '<%= config.build %>/index-csp.html': '<%= config.build %>/index.html'
@@ -361,10 +396,12 @@ module.exports = function (grunt) {
             }
         },
 
-        rename: {
+        remove: {
+          unvulcanized: {
+            fileList: ['<%= config.build %>/index.html']
+          },
           vulcanized: {
-            src: '<%= config.build %>/index-csp.html',
-            dest: '<%= config.build %>/index.html'
+            fileList: ['<%= config.build %>/index-csp.html']
           }
         }
 
@@ -399,8 +436,10 @@ module.exports = function (grunt) {
     grunt.registerTask('build', [
         'clean:build',
         'copy:build',
-        'vulcanize',
-        'rename:vulcanized'
+        'vulcanize', // index.html -> index-csp.html/index-csp.js
+        'remove:unvulcanized', // rm index.html
+        'copy:vulcanized', // index-csp.html -> index.html & move script element
+        'remove:vulcanized', // rm index-csp.html
     ]);
 
     grunt.registerTask('dist', [
