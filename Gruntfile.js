@@ -253,8 +253,8 @@ module.exports = function (grunt) {
         //     dist: {}
         // },
 
-        // Copies remaining files to places other tasks can use
         copy: {
+            // Copies all files into build directory for vulcanization
             build: {
                 files: [{
                     expand: true,
@@ -266,6 +266,7 @@ module.exports = function (grunt) {
                     ]
                 }]
             },
+            // Copies remaining files to places other tasks can use
             dist: {
                 files: [{
                     expand: true,
@@ -404,14 +405,14 @@ module.exports = function (grunt) {
 
     grunt.registerTask('dist', [
         'clean:dist',
-        'copy:build',
+        'copy:dist',
         'chromeManifest:dist',
         'useminPrepare',
         'concurrent:dist',
         'concat',
         'cssmin',
         'uglify',
-        'copy',
+        'copy:styles',
         'usemin',
         'htmlmin',
         'compress'
