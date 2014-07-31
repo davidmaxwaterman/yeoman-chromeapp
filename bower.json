@@ -1,0 +1,8 @@
+{
+  "name": "chromeapp",
+  "version": "0.0.0",
+  "dependencies": {
+    "polymer-list": "Polymer/polymer-list#~0.2.4"
+  },
+  "devDependencies": {}
+}
