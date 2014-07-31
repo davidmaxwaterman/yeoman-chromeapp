@@ -13,10 +13,10 @@
 
         <!-- build:js scripts/index.js -->
         <script src="scripts/index.js"></script>
-        <script src="bower_components/platform/platform.js"></script>
         <!-- endbuild -->
 
-        <link rel="import" href="bower_components/polymer-list/polymer-list.html">
+        <script src="bower_components/platform/platform.js"></script>
+        <link rel="import" href="bower_components/core-list/core-list.html">
 
         <style>
           html, body {
@@ -26,7 +26,6 @@
           
           list-test {
             display: block;
-            max-width: 600px;
             height: 100%;
             margin: 0 auto;
           }
@@ -40,65 +39,120 @@
 
     </head>
     <body unresolved>
-        <h1>'Allo</h1>
         <list-test></list-test>
 
         <polymer-element name="list-test">
-          <template>
-            <style>
-              polymer-list {
-                height: 100%;
-              }
+        <template>
+          <style>
+            core-list {
+              height: 100%;
+            }
 
-              .header {
-                background: gray;
-                text: black;
-                font-weight: bold;
-              }
+            .item {
+              box-sizing: border-box;
+              height: 80px;
+              border-bottom: 1px solid #ddd;
+              padding: 4px;
+              cursor: default;
+              background-color: white;
+              overflow: hidden;
+            }
 
-              .item {
-                box-sizing: border-box;
-                height: 80px;
-                line-height: 80px;
-                padding: 0 20px;
-                border-bottom: 1px solid #ddd;
-                overflow: hidden;
-                background: #333;
-                color: white;
-              }
+            .selected {
+              background: silver;
+            }
 
-              .polymer-selected {
-                background: whitesmoke;
-                color: black;
-              }
-            </style>
-            <polymer-list id="list" data="{{data}}" on-polymer-select="{{selectAction}}">
-              <template>
-                <div hidden?="{{!item.header}}" class="header">{{item.header}}: {{item.index}}</div>
-                <div class="item {{selected}}">Index: {{index}}</div>
-              </template>
-            </polymer-list>
+            .message {
+              padding-left: 77px;
+              line-height: 167%;
+              background-repeat: no-repeat;
+              background-position: 10px 10px;
+              background-size: 60px;
+            }
+            
+            .from {
+              display: inline;
+              font-weight: bold;
+            }
+            
+            .timestamp {
+              margin-left: 10px;
+              font-size: 12px;
+              opacity: 0.8;
+            }
+            
+            .body {
+              font-size: 12px;
+            }
+          </style>
+          <core-list id="list" data="{{data}}" height="80">
+            <template>
+              <div class="item {{ {selected: selected} | tokenList }}">
+                <div class="message" style="background-image: url(images/{{index % 4}}.png);">
+                  <span class="from">{{name}}</span>
+                  <span class="timestamp">{{time}}</span>
+                  <div class="subject">Infinite List. {{index}}</div>
+                  <div class="body">{{details}}</div>
+                </div>
+              </div>
+            </template>
+          </core-list>
 
-          </template>
-          <script>
-            Polymer('list-test', {
-              ready: function() {
-                var data = [];
-                for (var i=0, o; i< 50000; i++) {
-                  o = {index: i};
-                  if ((i+1) % 10 === 0) {
-                    o.header = 'Header';
-                  }
-                  data.push(o);
+        </template>
+        <script>
+        (function() {
+          var strings = [
+            "PARKOUR!",
+            "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...",
+            "Lorem Ipsum is simply dummy text of the printing and typesetting industry."
+          ];
+
+          var namegen = {
+            generateString: function(inLength) {
+              var s = '';
+              for (var i=0; i<inLength; i++) {
+                s += String.fromCharCode(Math.floor(Math.random() * 26) + 97);
+              }
+              return s;
+            },
+            generateName: function(inMin, inMax) {
+              return this.generateString(Math.floor(Math.random() * (inMax - inMin + 1) + inMin));
+            }
+          };
+
+          Polymer('list-test', {
+            count: 50000,
+            ready: function() {
+              this.data = this.generateData();
+            },
+            generateData: function() {
+              var names = [], data = [];
+              for (var i=0; i<this.count; i++) {
+                names.push(namegen.generateName(4, 8));
+              }
+              names.sort();
+              for (var i=0; i<this.count; i++) {
+                var name = names[i];
+                var divider = name.charAt(0);
+                if (divider === (names[i-1] || '').charAt(0)) {
+                  divider = null;
                 }
-                this.data = data;
-              },
-              selectAction: function(e, detail) {
-                //this.data[detail.item].selected = detail.isSelected ? 'polymer-selected' : '';
-                //this.$.list.refresh();
+                data.push({
+                  index: i,
+                  name: name,
+                  divider: divider,
+                  details: strings[i % 3],
+                  time: '8:29pm'
+                });
               }
-            })
-          </script>
-    </polymer-element>
+              return data;
+            },
+            tapAction: function(e) {
+              console.log('tap', e);
+            }
+          });
+        })();  
+        </script>
+      </polymer-element>
     </body>
 </html>
