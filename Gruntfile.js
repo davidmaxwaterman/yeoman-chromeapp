@@ -127,7 +127,6 @@ module.exports = function (grunt) {
                     ]
                 }]
             }
-
         },
 
         // Make sure code styles are up to par and there are no obvious mistakes
@@ -318,10 +317,9 @@ module.exports = function (grunt) {
                         'images/{,*/}*.{webp,gif}',
                         '{,*/}*.html',
                         'styles/fonts/{,*/}*.*',
-                        '_locales/{,*/}*.json'
+                        '_locales/{,*/}*.json',
                     ]
-                }
-                ]
+                }]
             },
             styles: {
                 expand: true,
@@ -404,7 +402,6 @@ module.exports = function (grunt) {
             fileList: ['<%= config.build %>/index-csp.html']
           }
         }
-
     });
 
     grunt.registerTask('debug', function (platform) {
